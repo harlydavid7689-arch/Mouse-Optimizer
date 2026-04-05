@@ -1,0 +1,766 @@
+<Window x:Class="MouseOptimizer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:conv="clr-namespace:MouseOptimizer.Converters"
+        xmlns:vm="clr-namespace:MouseOptimizer.ViewModels"
+        Title="Mouse Optimizer" Height="680" Width="1100"
+        MinHeight="600" MinWidth="900"
+        WindowStyle="None" AllowsTransparency="True"
+        Background="Transparent" WindowStartupLocation="CenterScreen">
+
+    <Window.Resources>
+        <conv:BoolToVisibilityConverter         x:Key="BoolVis"/>
+        <conv:InverseBoolToVisibilityConverter  x:Key="InvBoolVis"/>
+        <conv:BoolToStatusBrushConverter        x:Key="BoolBrush"/>
+        <conv:BoolToEnabledStringConverter      x:Key="BoolEnabled"/>
+        <conv:BoolToOnOffConverter              x:Key="BoolOnOff"/>
+        <conv:DoubleToStringConverter           x:Key="DblStr"/>
+    </Window.Resources>
+
+    <!-- Outer chrome with rounded corners -->
+    <Border CornerRadius="14" ClipToBounds="True">
+        <Border.Background>
+            <SolidColorBrush Color="#0A0A0C"/>
+        </Border.Background>
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="32" ShadowDepth="0" Color="#000000" Opacity="0.8"/>
+        </Border.Effect>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <!-- Navigation sidebar -->
+                <ColumnDefinition Width="210"/>
+                <!-- Content area -->
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- ═══════════════════════════════════════════════
+                 LEFT SIDEBAR — Navigation
+            ═══════════════════════════════════════════════ -->
+            <Border Grid.Column="0" Background="#0D0D10">
+                <Border.BorderBrush>
+                    <SolidColorBrush Color="#222230"/>
+                </Border.BorderBrush>
+                <Border.BorderThickness>0,0,1,0</Border.BorderThickness>
+
+                <DockPanel>
+                    <!-- Logo -->
+                    <StackPanel DockPanel.Dock="Top" Margin="20,24,20,20">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Width="36" Height="36" CornerRadius="10" Margin="0,0,10,0">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Color="#E01C2F" Offset="0"/>
+                                        <GradientStop Color="#600A14" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="12" ShadowDepth="0" Color="#E01C2F" Opacity="0.5"/>
+                                </Border.Effect>
+                                <TextBlock Text="🖱" FontSize="18"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel>
+                                <TextBlock Text="MOUSE" FontFamily="Segoe UI" FontSize="12"
+                                           FontWeight="Black" Foreground="White" CharacterSpacing="200"/>
+                                <TextBlock Text="OPTIMIZER" FontFamily="Segoe UI" FontSize="8"
+                                           FontWeight="SemiBold" Foreground="#E01C2F" CharacterSpacing="300"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <!-- Divider -->
+                        <Border Height="1" Background="#222230" Margin="0,18,0,0"/>
+                    </StackPanel>
+
+                    <!-- Status footer at bottom -->
+                    <Border DockPanel.Dock="Bottom" Margin="12,0,12,16"
+                            Background="#0F0F14" CornerRadius="8" Padding="12,10">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <Ellipse Width="7" Height="7" VerticalAlignment="Center"
+                                         Margin="0,0,7,0"
+                                         Fill="{Binding Optimization.OptimizationEnabled, Converter={StaticResource BoolBrush}}"/>
+                                <TextBlock FontFamily="Segoe UI" FontSize="10" FontWeight="SemiBold"
+                                           Foreground="#A0A0B0">
+                                    <TextBlock.Text>
+                                        <Binding Path="Optimization.OptimizationEnabled"
+                                                 Converter="{StaticResource BoolEnabled}"/>
+                                    </TextBlock.Text>
+                                </TextBlock>
+                            </StackPanel>
+                            <TextBlock Text="System Ready" FontFamily="Segoe UI" FontSize="9"
+                                       Foreground="#3A3A4A" Margin="14,2,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Nav items -->
+                    <StackPanel DockPanel.Dock="Top" Margin="8,0">
+                        <TextBlock Text="NAVIGATION" Style="{StaticResource TxtLabel}" Margin="12,0,0,8"/>
+
+                        <Button Style="{StaticResource BtnNav}"
+                                Tag="{Binding IsDashboard, Converter={StaticResource BoolEnabled}}"
+                                Command="{Binding NavigateCommand}" CommandParameter="Dashboard">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="⊞" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Dashboard" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Style="{StaticResource BtnNav}"
+                                Tag="{Binding IsOptimization, Converter={StaticResource BoolEnabled}}"
+                                Command="{Binding NavigateCommand}" CommandParameter="Optimization">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="⚡" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Optimization" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Style="{StaticResource BtnNav}"
+                                Tag="{Binding IsSmoothness, Converter={StaticResource BoolEnabled}}"
+                                Command="{Binding NavigateCommand}" CommandParameter="Smoothness">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="〜" FontSize="16" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Smoothness" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Style="{StaticResource BtnNav}"
+                                Tag="{Binding IsSensitivity, Converter={StaticResource BoolEnabled}}"
+                                Command="{Binding NavigateCommand}" CommandParameter="Sensitivity">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="◎" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Sensitivity" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Style="{StaticResource BtnNav}"
+                                Tag="{Binding IsProfiles, Converter={StaticResource BoolEnabled}}"
+                                Command="{Binding NavigateCommand}" CommandParameter="Profiles">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="👤" FontSize="13" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Profiles" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Style="{StaticResource BtnNav}"
+                                Tag="{Binding IsSettings, Converter={StaticResource BoolEnabled}}"
+                                Command="{Binding NavigateCommand}" CommandParameter="Settings">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="⚙" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Settings" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+
+            <!-- ═══════════════════════════════════════════════
+                 RIGHT PANEL — Top bar + Content
+            ═══════════════════════════════════════════════ -->
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="48"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Custom top bar (drag + close/minimize) -->
+                <Border Grid.Row="0" Background="#0A0A0C" MouseLeftButtonDown="TopBar_MouseDown">
+                    <Border.BorderBrush><SolidColorBrush Color="#18181E"/></Border.BorderBrush>
+                    <Border.BorderThickness>0,0,0,1</Border.BorderThickness>
+                    <Grid>
+                        <!-- Page title -->
+                        <TextBlock Text="{Binding CurrentPage}" VerticalAlignment="Center"
+                                   Margin="20,0" FontFamily="Segoe UI" FontSize="13"
+                                   FontWeight="SemiBold" Foreground="#5A5A6A"/>
+                        <!-- Window controls -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
+                                    VerticalAlignment="Center" Margin="0,0,12,0">
+                            <Button x:Name="BtnMinimize" Width="32" Height="32"
+                                    Content="─" FontSize="11" Foreground="#5A5A6A"
+                                    Background="Transparent" BorderThickness="0"
+                                    Cursor="Hand" Click="Minimize_Click"
+                                    ToolTip="Minimize">
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border x:Name="b" Background="{TemplateBinding Background}"
+                                                            CornerRadius="6">
+                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Border>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter TargetName="b" Property="Background" Value="#1E1E26"/>
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                        <Setter Property="Background"  Value="Transparent"/>
+                                        <Setter Property="Foreground"  Value="#5A5A6A"/>
+                                        <Setter Property="FontSize"    Value="11"/>
+                                        <Setter Property="Cursor"      Value="Hand"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                            <Button x:Name="BtnClose" Width="32" Height="32"
+                                    Content="✕" FontSize="11" Cursor="Hand"
+                                    Click="Close_Click" Margin="4,0,0,0"
+                                    ToolTip="Close">
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border x:Name="b" Background="{TemplateBinding Background}"
+                                                            CornerRadius="6">
+                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Border>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter TargetName="b" Property="Background" Value="#C01020"/>
+                                                            <Setter Property="Foreground"                 Value="White"/>
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                        <Setter Property="Background"  Value="Transparent"/>
+                                        <Setter Property="Foreground"  Value="#5A5A6A"/>
+                                        <Setter Property="FontSize"    Value="11"/>
+                                        <Setter Property="Cursor"      Value="Hand"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- ══════════════════════════════════════════
+                     SCROLLABLE CONTENT AREA
+                ══════════════════════════════════════════ -->
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled"
+                              Padding="24,24,24,24">
+
+                    <!-- ── DASHBOARD ─────────────────────────────────── -->
+                    <Grid Visibility="{Binding IsDashboard, Converter={StaticResource BoolVis}}">
+                        <StackPanel>
+                            <TextBlock Text="Dashboard" Style="{StaticResource TxtH1}" Margin="0,0,0,4"/>
+                            <TextBlock Text="Real-time overview of your mouse configuration" Style="{StaticResource TxtBody}" Margin="0,0,0,24"/>
+
+                            <!-- Stats row -->
+                            <Grid Margin="0,0,0,16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Optimization status card -->
+                                <Border Grid.Column="0" Style="{StaticResource Card}" Margin="0,0,10,0">
+                                    <StackPanel>
+                                        <TextBlock Text="OPTIMIZATION" Style="{StaticResource TxtLabel}" Margin="0,0,0,8"/>
+                                        <TextBlock FontFamily="Segoe UI" FontSize="20" FontWeight="Bold"
+                                                   Foreground="{Binding Optimization.OptimizationEnabled, Converter={StaticResource BoolBrush}}"
+                                                   Text="{Binding Optimization.OptimizationEnabled, Converter={StaticResource BoolOnOff}}"/>
+                                        <TextBlock Text="Mouse Optimization" Style="{StaticResource TxtBody}" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Sensitivity card -->
+                                <Border Grid.Column="1" Style="{StaticResource Card}" Margin="0,0,10,0">
+                                    <StackPanel>
+                                        <TextBlock Text="SENSITIVITY" Style="{StaticResource TxtLabel}" Margin="0,0,0,8"/>
+                                        <TextBlock FontFamily="Segoe UI" FontSize="20" FontWeight="Bold"
+                                                   Foreground="{StaticResource BrAccentRed}"
+                                                   Text="{Binding Sensitivity.Sensitivity, Converter={StaticResource DblStr}}"/>
+                                        <TextBlock Text="Current Level" Style="{StaticResource TxtBody}" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Smoothness card -->
+                                <Border Grid.Column="2" Style="{StaticResource Card}" Margin="0,0,10,0">
+                                    <StackPanel>
+                                        <TextBlock Text="SMOOTHNESS" Style="{StaticResource TxtLabel}" Margin="0,0,0,8"/>
+                                        <TextBlock FontFamily="Segoe UI" FontSize="20" FontWeight="Bold"
+                                                   Foreground="{StaticResource BrAccentRed}"
+                                                   Text="{Binding Smoothness.SelectedPreset}"/>
+                                        <TextBlock Text="Active Preset" Style="{StaticResource TxtBody}" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Profile card -->
+                                <Border Grid.Column="3" Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Text="ACTIVE PROFILE" Style="{StaticResource TxtLabel}" Margin="0,0,0,8"/>
+                                        <TextBlock FontFamily="Segoe UI" FontSize="18" FontWeight="Bold"
+                                                   Foreground="{StaticResource BrAccentRed}"
+                                                   Text="{Binding Profiles.SelectedProfile.Name}"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="Current Profile" Style="{StaticResource TxtBody}" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+
+                            <!-- Quick actions -->
+                            <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                                <StackPanel>
+                                    <TextBlock Text="QUICK ACTIONS" Style="{StaticResource TxtLabel}" Margin="0,0,0,16"/>
+                                    <WrapPanel>
+                                        <Button Content="⚡  Enable Optimization" Style="{StaticResource BtnPrimary}"
+                                                Margin="0,0,10,0"
+                                                Command="{Binding Optimization.ApplyCommand}"
+                                                Click="QuickEnable_Click"/>
+                                        <Button Content="💾  Save Current Profile" Style="{StaticResource BtnGhost}"
+                                                Margin="0,0,10,0" Click="QuickSave_Click"/>
+                                        <Button Content="↺  Restore Defaults" Style="{StaticResource BtnGhost}"
+                                                Command="{Binding Optimization.RestoreDefaultsCommand}"/>
+                                    </WrapPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- DPI / Polling info card -->
+                            <Border Style="{StaticResource Card}">
+                                <StackPanel>
+                                    <TextBlock Text="HARDWARE INFO" Style="{StaticResource TxtLabel}" Margin="0,0,0,16"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition/>
+                                            <ColumnDefinition/>
+                                            <ColumnDefinition/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="DPI (Profile)" Style="{StaticResource TxtLabel}" Margin="0,0,0,6"/>
+                                            <TextBlock FontFamily="Segoe UI" FontSize="22" FontWeight="Bold"
+                                                       Foreground="White" Text="{Binding Sensitivity.Dpi}"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1">
+                                            <TextBlock Text="POLLING RATE" Style="{StaticResource TxtLabel}" Margin="0,0,0,6"/>
+                                            <TextBlock Text="{Binding Optimization.PollingRateInfo}"
+                                                       FontFamily="Segoe UI" FontSize="13"
+                                                       Foreground="White" FontWeight="SemiBold"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="ACCELERATION" Style="{StaticResource TxtLabel}" Margin="0,0,0,6"/>
+                                            <TextBlock FontFamily="Segoe UI" FontSize="13" FontWeight="SemiBold"
+                                                       Text="{Binding Optimization.DisablePointerAcceleration, Converter={StaticResource BoolOnOff}}"
+                                                       Foreground="{Binding Optimization.DisablePointerAcceleration, Converter={StaticResource BoolBrush}}"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- ── OPTIMIZATION PAGE ─────────────────────────── -->
+                    <Grid Visibility="{Binding IsOptimization, Converter={StaticResource BoolVis}}">
+                        <StackPanel>
+                            <TextBlock Text="Mouse Optimization" Style="{StaticResource TxtH1}" Margin="0,0,0,4"/>
+                            <TextBlock Text="Enable and configure Windows-level mouse input optimization" Style="{StaticResource TxtBody}" Margin="0,0,0,24"/>
+
+                            <!-- Master toggle card -->
+                            <Border Margin="0,0,0,16"
+                                    CornerRadius="12" Padding="24" ClipToBounds="True"
+                                    BorderThickness="1"
+                                    BorderBrush="{Binding Optimization.OptimizationEnabled, Converter={StaticResource BoolBrush}}">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="#12080A" Offset="0"/>
+                                        <GradientStop Color="#0A0A0C" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="MOUSE OPTIMIZATION" Style="{StaticResource TxtLabel}" Margin="0,0,0,8"/>
+                                        <TextBlock Text="{Binding Optimization.StatusText}"
+                                                   Style="{StaticResource TxtH2}"
+                                                   Foreground="{Binding Optimization.OptimizationEnabled, Converter={StaticResource BoolBrush}}"/>
+                                        <TextBlock Text="{Binding Optimization.StatusDetail}"
+                                                   Style="{StaticResource TxtBody}" Margin="0,6,0,0"/>
+                                        <TextBlock Margin="0,8,0,0" FontFamily="Segoe UI" FontSize="10"
+                                                   Foreground="#3A3A4A">
+                                            <Run Text="Last applied: "/>
+                                            <Run Text="{Binding Optimization.LastApplied}"/>
+                                        </TextBlock>
+                                    </StackPanel>
+                                    <CheckBox Grid.Column="1" Style="{StaticResource ToggleSwitch}"
+                                              IsChecked="{Binding Optimization.OptimizationEnabled, Mode=TwoWay}"
+                                              VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- Options -->
+                            <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                                <StackPanel>
+                                    <TextBlock Text="OPTIMIZATION OPTIONS" Style="{StaticResource TxtLabel}" Margin="0,0,0,16"/>
+
+                                    <!-- Input delay -->
+                                    <Grid Margin="0,0,0,14">
+                                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <TextBlock Text="Reduce Input Delay" Style="{StaticResource TxtH3}"/>
+                                            <TextBlock Text="Minimizes processing lag between physical click and system response" Style="{StaticResource TxtBody}" Margin="0,4,0,0"/>
+                                        </StackPanel>
+                                        <CheckBox Grid.Column="1" Style="{StaticResource ToggleSwitch}"
+                                                  IsChecked="{Binding Optimization.ReduceInputDelay, Mode=TwoWay}"
+                                                  VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <Border Height="1" Background="#1C1C24" Margin="0,0,0,14"/>
+
+                                    <!-- Cursor responsiveness -->
+                                    <Grid Margin="0,0,0,14">
+                                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <TextBlock Text="Improve Cursor Responsiveness" Style="{StaticResource TxtH3}"/>
+                                            <TextBlock Text="Prioritizes mouse input processing for smoother, more immediate cursor movement" Style="{StaticResource TxtBody}" Margin="0,4,0,0"/>
+                                        </StackPanel>
+                                        <CheckBox Grid.Column="1" Style="{StaticResource ToggleSwitch}"
+                                                  IsChecked="{Binding Optimization.ImproveCursorResponsiveness, Mode=TwoWay}"
+                                                  VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <Border Height="1" Background="#1C1C24" Margin="0,0,0,14"/>
+
+                                    <!-- Pointer acceleration -->
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <TextBlock Text="Disable Pointer Acceleration" Style="{StaticResource TxtH3}"/>
+                                            <TextBlock Text="Turns off Windows 'Enhance Pointer Precision' for 1:1 raw movement mapping — recommended for gaming" Style="{StaticResource TxtBody}" Margin="0,4,0,0"/>
+                                        </StackPanel>
+                                        <CheckBox Grid.Column="1" Style="{StaticResource ToggleSwitch}"
+                                                  IsChecked="{Binding Optimization.DisablePointerAcceleration, Mode=TwoWay}"
+                                                  VerticalAlignment="Center"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Polling info -->
+                            <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                                <StackPanel>
+                                    <TextBlock Text="POLLING RATE INFO" Style="{StaticResource TxtLabel}" Margin="0,0,0,12"/>
+                                    <TextBlock Text="{Binding Optimization.PollingRateInfo}"
+                                               Style="{StaticResource TxtH3}"/>
+                                    <TextBlock Style="{StaticResource TxtBody}" Margin="0,6,0,0"
+                                               Text="Polling rate is hardware-controlled. Use your mouse's software to change it. Higher rates (500–1000+ Hz) reduce input latency."/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Apply buttons -->
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="Apply Settings" Style="{StaticResource BtnPrimary}"
+                                        Command="{Binding Optimization.ApplyCommand}" Margin="0,0,10,0"/>
+                                <Button Content="Restore Defaults" Style="{StaticResource BtnGhost}"
+                                        Command="{Binding Optimization.RestoreDefaultsCommand}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- ── SMOOTHNESS PAGE ──────────────────────────── -->
+                    <Grid Visibility="{Binding IsSmoothness, Converter={StaticResource BoolVis}}">
+                        <StackPanel>
+                            <TextBlock Text="Mouse Smoothness" Style="{StaticResource TxtH1}" Margin="0,0,0,4"/>
+                            <TextBlock Text="Adjust cursor smoothing level and select presets" Style="{StaticResource TxtBody}" Margin="0,0,0,24"/>
+
+                            <!-- Presets -->
+                            <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                                <StackPanel>
+                                    <TextBlock Text="PRESETS" Style="{StaticResource TxtLabel}" Margin="0,0,0,14"/>
+                                    <WrapPanel>
+                                        <Button Content="⚡  Competitive" Style="{StaticResource BtnPreset}"
+                                                Command="{Binding Smoothness.SetPresetCommand}" CommandParameter="Competitive"/>
+                                        <Button Content="◎  Low" Style="{StaticResource BtnPreset}"
+                                                Command="{Binding Smoothness.SetPresetCommand}" CommandParameter="Low"/>
+                                        <Button Content="⊖  Balanced" Style="{StaticResource BtnPreset}"
+                                                Command="{Binding Smoothness.SetPresetCommand}" CommandParameter="Balanced"/>
+                                        <Button Content="〜  High" Style="{StaticResource BtnPreset}"
+                                                Command="{Binding Smoothness.SetPresetCommand}" CommandParameter="High"/>
+                                    </WrapPanel>
+                                    <Border Margin="0,14,0,14" Height="1" Background="#1C1C24"/>
+                                    <TextBlock Style="{StaticResource TxtH3}"
+                                               Text="{Binding Smoothness.SelectedPreset}"/>
+                                    <TextBlock Style="{StaticResource TxtBody}" Margin="0,4,0,0"
+                                               Text="{Binding Smoothness.PresetDescription}"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Smoothness slider -->
+                            <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,16">
+                                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <TextBlock Text="SMOOTHNESS LEVEL" Style="{StaticResource TxtLabel}"/>
+                                        <TextBlock Grid.Column="1" Style="{StaticResource TxtAccent}"
+                                                   FontSize="18" FontWeight="Bold"
+                                                   Text="{Binding Smoothness.SmoothnessLevel}"/>
+                                    </Grid>
+                                    <Slider Style="{StaticResource GameSlider}"
+                                            Minimum="0" Maximum="100"
+                                            Value="{Binding Smoothness.SmoothnessLevel, Mode=TwoWay}"
+                                            Margin="0,0,0,12"/>
+                                    <Grid>
+                                        <TextBlock Text="0 — Raw" Style="{StaticResource TxtBody}" HorizontalAlignment="Left"/>
+                                        <TextBlock Text="100 — Fluid" Style="{StaticResource TxtBody}" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                    <Border Height="1" Background="#1C1C24" Margin="0,14"/>
+                                    <TextBlock Text="{Binding Smoothness.SmoothnessDescription}"
+                                               Style="{StaticResource TxtH3}"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- ── SENSITIVITY PAGE ─────────────────────────── -->
+                    <Grid Visibility="{Binding IsSensitivity, Converter={StaticResource BoolVis}}">
+                        <StackPanel>
+                            <TextBlock Text="Sensitivity" Style="{StaticResource TxtH1}" Margin="0,0,0,4"/>
+                            <TextBlock Text="Fine-tune mouse sensitivity and DPI profile settings" Style="{StaticResource TxtBody}" Margin="0,0,0,24"/>
+
+                            <!-- Main sensitivity -->
+                            <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                                <StackPanel>
+                                    <Grid Margin="0,0,0,16">
+                                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <TextBlock Text="MOUSE SENSITIVITY" Style="{StaticResource TxtLabel}"/>
+                                        <TextBlock Grid.Column="1" Style="{StaticResource TxtAccent}"
+                                                   FontSize="22" FontWeight="Bold"
+                                                   Text="{Binding Sensitivity.Sensitivity, Converter={StaticResource DblStr}}"/>
+                                    </Grid>
+                                    <Slider Style="{StaticResource GameSlider}"
+                                            Minimum="1" Maximum="100" TickFrequency="1"
+                                            Value="{Binding Sensitivity.Sensitivity, Mode=TwoWay}"
+                                            Margin="0,0,0,12"/>
+                                    <Grid>
+                                        <TextBlock Text="0.1 — Slowest" Style="{StaticResource TxtBody}" HorizontalAlignment="Left"/>
+                                        <TextBlock Text="10.0 — Fastest" Style="{StaticResource TxtBody}" HorizontalAlignment="Right"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- H/V sensitivity -->
+                            <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="20"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="HORIZONTAL" Style="{StaticResource TxtLabel}" Margin="0,0,0,12"/>
+                                        <Slider Style="{StaticResource GameSlider}"
+                                                Minimum="10" Maximum="300" TickFrequency="10"
+                                                Value="{Binding Sensitivity.HorizontalSensitivity, Mode=TwoWay}"
+                                                Margin="0,0,0,8"/>
+                                        <TextBlock Style="{StaticResource TxtH3}"
+                                                   Text="{Binding Sensitivity.HorizontalSensitivity, Converter={StaticResource DblStr}}"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="VERTICAL" Style="{StaticResource TxtLabel}" Margin="0,0,0,12"/>
+                                        <Slider Style="{StaticResource GameSlider}"
+                                                Minimum="10" Maximum="300" TickFrequency="10"
+                                                Value="{Binding Sensitivity.VerticalSensitivity, Mode=TwoWay}"
+                                                Margin="0,0,0,8"/>
+                                        <TextBlock Style="{StaticResource TxtH3}"
+                                                   Text="{Binding Sensitivity.VerticalSensitivity, Converter={StaticResource DblStr}}"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <!-- ADS + DPI -->
+                            <Grid Margin="0,0,0,16">
+                                <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="16"/><ColumnDefinition/></Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0" Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Text="ADS SENSITIVITY" Style="{StaticResource TxtLabel}" Margin="0,0,0,12"/>
+                                        <Slider Style="{StaticResource GameSlider}"
+                                                Minimum="10" Maximum="200" TickFrequency="10"
+                                                Value="{Binding Sensitivity.AdsSensitivity, Mode=TwoWay}"
+                                                Margin="0,0,0,8"/>
+                                        <TextBlock Style="{StaticResource TxtH3}"
+                                                   Text="{Binding Sensitivity.AdsSensitivity, Converter={StaticResource DblStr}}"/>
+                                        <TextBlock Text="Aim-down-sights multiplier" Style="{StaticResource TxtBody}" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Grid.Column="2" Style="{StaticResource Card}">
+                                    <StackPanel>
+                                        <TextBlock Text="DPI PROFILE (DISPLAY)" Style="{StaticResource TxtLabel}" Margin="0,0,0,12"/>
+                                        <TextBox Style="{StaticResource GameInput}"
+                                                 Text="{Binding Sensitivity.Dpi, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                                        <TextBlock Text="Enter your hardware DPI for reference" Style="{StaticResource TxtBody}" Margin="0,8,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+
+                            <!-- Actions -->
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="Apply to Windows" Style="{StaticResource BtnPrimary}"
+                                        Command="{Binding Sensitivity.ApplyCommand}" Margin="0,0,10,0"/>
+                                <Button Content="Set Default" Style="{StaticResource BtnGhost}"
+                                        Command="{Binding Sensitivity.SetDefaultCommand}"/>
+                            </StackPanel>
+
+                            <!-- Status -->
+                            <TextBlock Text="{Binding Sensitivity.StatusMessage}"
+                                       Style="{StaticResource TxtBody}" Margin="0,12,0,0"
+                                       Foreground="{StaticResource BrAccentRed}"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- ── PROFILES PAGE ────────────────────────────── -->
+                    <Grid Visibility="{Binding IsProfiles, Converter={StaticResource BoolVis}}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="16"/>
+                            <ColumnDefinition Width="300"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Profile list -->
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Profiles" Style="{StaticResource TxtH1}" Margin="0,0,0,4"/>
+                            <TextBlock Text="Manage and switch between your mouse configuration profiles" Style="{StaticResource TxtBody}" Margin="0,0,0,24"/>
+
+                            <ListBox Style="{StaticResource ProfileListBox}"
+                                     ItemsSource="{Binding Profiles.Profiles}"
+                                     SelectedItem="{Binding Profiles.SelectedProfile, Mode=TwoWay}">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <!-- Icon -->
+                                            <Border Grid.Column="0" Width="42" Height="42" CornerRadius="10"
+                                                    Background="#1E1E28" Margin="0,0,12,0">
+                                                <TextBlock Text="{Binding Icon}" FontSize="20"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <!-- Info -->
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Name}" Style="{StaticResource TxtH3}"/>
+                                                <TextBlock Text="{Binding Description}" Style="{StaticResource TxtBody}"
+                                                           TextTrimming="CharacterEllipsis"/>
+                                            </StackPanel>
+                                            <!-- Sensitivity badge -->
+                                            <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right">
+                                                <TextBlock Style="{StaticResource TxtLabel}" Text="SENS" TextAlignment="Right"/>
+                                                <TextBlock Style="{StaticResource TxtAccent}"
+                                                           Text="{Binding Sensitivity, StringFormat={}{0:F1}}" TextAlignment="Right"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+
+                            <TextBlock Text="{Binding Profiles.StatusMessage}" Style="{StaticResource TxtBody}"
+                                       Foreground="{StaticResource BrAccentRed}" Margin="0,12,0,0"/>
+                        </StackPanel>
+
+                        <!-- Profile actions sidebar -->
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="ACTIONS" Style="{StaticResource TxtLabel}" Margin="0,0,0,12"/>
+
+                            <!-- Load selected profile -->
+                            <Button Content="Load Profile" Style="{StaticResource BtnPrimary}"
+                                    Margin="0,0,0,8" HorizontalAlignment="Stretch"
+                                    Click="LoadProfile_Click"/>
+                            <Button Content="Save Current → Profile" Style="{StaticResource BtnGhost}"
+                                    Margin="0,0,0,8" HorizontalAlignment="Stretch"
+                                    Click="QuickSave_Click"/>
+
+                            <Border Height="1" Background="#1C1C24" Margin="0,12"/>
+
+                            <!-- Create new -->
+                            <TextBlock Text="NEW PROFILE" Style="{StaticResource TxtLabel}" Margin="0,0,0,8"/>
+                            <TextBox Style="{StaticResource GameInput}"
+                                     Text="{Binding Profiles.NewProfileName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     Margin="0,0,0,8">
+                                <TextBox.Style>
+                                    <Style TargetType="TextBox" BasedOn="{StaticResource GameInput}">
+                                        <Setter Property="Tag" Value="Profile name..."/>
+                                    </Style>
+                                </TextBox.Style>
+                            </TextBox>
+                            <Button Content="+ Create Profile" Style="{StaticResource BtnPrimary}"
+                                    Margin="0,0,0,8" HorizontalAlignment="Stretch"
+                                    Command="{Binding Profiles.CreateProfileCommand}"/>
+
+                            <Border Height="1" Background="#1C1C24" Margin="0,12"/>
+
+                            <!-- Import / Export / Delete -->
+                            <TextBlock Text="IMPORT / EXPORT" Style="{StaticResource TxtLabel}" Margin="0,0,0,8"/>
+                            <Button Content="Export JSON" Style="{StaticResource BtnGhost}"
+                                    Margin="0,0,0,8" HorizontalAlignment="Stretch"
+                                    Command="{Binding Profiles.ExportProfileCommand}"/>
+                            <Button Content="Import JSON" Style="{StaticResource BtnGhost}"
+                                    Margin="0,0,0,8" HorizontalAlignment="Stretch"
+                                    Command="{Binding Profiles.ImportProfileCommand}"/>
+                            <Button Content="Delete Profile" Style="{StaticResource BtnGhost}"
+                                    HorizontalAlignment="Stretch" Foreground="#C0204A"
+                                    Command="{Binding Profiles.DeleteProfileCommand}"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- ── SETTINGS PAGE ────────────────────────────── -->
+                    <Grid Visibility="{Binding IsSettings, Converter={StaticResource BoolVis}}">
+                        <StackPanel>
+                            <TextBlock Text="Settings" Style="{StaticResource TxtH1}" Margin="0,0,0,4"/>
+                            <TextBlock Text="Application preferences and system configuration" Style="{StaticResource TxtBody}" Margin="0,0,0,24"/>
+
+                            <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                                <StackPanel>
+                                    <TextBlock Text="GENERAL" Style="{StaticResource TxtLabel}" Margin="0,0,0,16"/>
+
+                                    <Grid Margin="0,0,0,14">
+                                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <TextBlock Text="Start with Windows" Style="{StaticResource TxtH3}"/>
+                                            <TextBlock Text="Launch Mouse Optimizer automatically on login" Style="{StaticResource TxtBody}" Margin="0,4,0,0"/>
+                                        </StackPanel>
+                                        <CheckBox Grid.Column="1" Style="{StaticResource ToggleSwitch}"
+                                                  IsChecked="{Binding StartWithWindows, Mode=TwoWay}"
+                                                  VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <Border Height="1" Background="#1C1C24" Margin="0,0,0,14"/>
+
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <StackPanel>
+                                            <TextBlock Text="Minimize to Tray" Style="{StaticResource TxtH3}"/>
+                                            <TextBlock Text="Keep Mouse Optimizer running in the system tray when closed" Style="{StaticResource TxtBody}" Margin="0,4,0,0"/>
+                                        </StackPanel>
+                                        <CheckBox Grid.Column="1" Style="{StaticResource ToggleSwitch}"
+                                                  IsChecked="{Binding MinimizeToTray, Mode=TwoWay}"
+                                                  VerticalAlignment="Center"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                                <StackPanel>
+                                    <TextBlock Text="ABOUT" Style="{StaticResource TxtLabel}" Margin="0,0,0,12"/>
+                                    <TextBlock Text="Mouse Optimizer v1.0.0" Style="{StaticResource TxtH3}"/>
+                                    <TextBlock Text="Esports Performance Utility — Mouse Settings Manager" Style="{StaticResource TxtBody}" Margin="0,4,0,0"/>
+                                    <TextBlock Margin="0,12,0,0" Style="{StaticResource TxtBody}">
+                                        This application applies standard Windows mouse settings via the SystemParametersInfo API.
+                                        No game files are modified. No macros, injection, or exploit functionality is included.
+                                    </TextBlock>
+                                </StackPanel>
+                            </Border>
+
+                            <Button Content="Save Settings" Style="{StaticResource BtnPrimary}"
+                                    Click="SaveSettings_Click"/>
+                        </StackPanel>
+                    </Grid>
+
+                </ScrollViewer>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>
